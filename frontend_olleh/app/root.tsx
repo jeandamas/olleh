@@ -13,8 +13,18 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import { Toaster } from "~/components/ui/sonner"
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-const queryClient = new QueryClient()
+import { AuthProvider } from "~/lib/auth-context"
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -43,9 +53,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
       <QueryClientProvider client={queryClient}>
-        {children}
-        <ReactQueryDevtools initialIsOpen={false} />
+        <AuthProvider>
+          {children}
+          <ReactQueryDevtools initialIsOpen={false} />
+        </AuthProvider>
         </QueryClientProvider>
+        <Toaster richColors={true} />
         <ScrollRestoration />
         <Scripts />
       </body>
