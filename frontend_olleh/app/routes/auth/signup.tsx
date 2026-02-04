@@ -1,8 +1,27 @@
 import { GalleryVerticalEnd } from "lucide-react"
-
+import { Navigate } from "react-router"
 import { SignupForm } from "~/components/signup-form"
+import { useAuth } from "~/lib/auth-context"
 
 export default function SignupPage() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  // Redirect to dashboard if already authenticated
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
