@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.contrib import messages
 from .models import Membership, UserMembership
 
@@ -151,10 +152,10 @@ class UserMembershipAdmin(admin.ModelAdmin):
 
     def is_active_badge(self, obj):
         if obj.is_active:
-            return format_html(
+            return mark_safe(
                 '<span style="color: green; font-weight: bold;">✓ Active</span>'
             )
-        return format_html('<span style="color: gray;">✗ Inactive</span>')
+        return mark_safe('<span style="color: gray;">✗ Inactive</span>')
 
     is_active_badge.short_description = "Active"
 
