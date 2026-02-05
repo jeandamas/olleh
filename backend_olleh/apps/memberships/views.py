@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -144,18 +145,23 @@ class UserMembershipViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=["get"])
     def active(self, request):
-        """Get the user's currently active membership"""
-        try:
-            active_membership = self.get_queryset().get(
-                status=UserMembership.STATUS_ACTIVE
+        """Get the user's currently active (non-expired) membership."""
+        now = timezone.now()
+        active_membership = (
+            self.get_queryset()
+            .filter(
+                status=UserMembership.STATUS_ACTIVE,
+                end_date__gt=now,
             )
-            serializer = UserMembershipDetailSerializer(active_membership)
-            return Response(serializer.data)
-        except UserMembership.DoesNotExist:
+            .first()
+        )
+        if not active_membership:
             return Response(
                 {"detail": "No active membership found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        serializer = UserMembershipDetailSerializer(active_membership)
+        return Response(serializer.data)
 
     @extend_schema(
         summary="Get pending memberships",

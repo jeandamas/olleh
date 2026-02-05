@@ -29,20 +29,20 @@ class MembershipAPITestCase(TestCase):
             is_staff=True,
         )
 
-        # Create membership tiers (all prices in RWF - integers)
-        self.bronze = Membership.objects.create(
-            name="Bronze",
-            price=25000,
-            max_order_price=50000,
-            description="Bronze tier",
+        # Create membership tiers (OLLEH: Basic 10k, Premium 20k RWF/year)
+        self.basic = Membership.objects.create(
+            name="Basic",
+            price=10_000,
+            max_order_price=100_000,
+            description="Basic membership. Annual fee.",
             duration_days=365,
             is_available=True,
         )
-        self.silver = Membership.objects.create(
-            name="Silver",
-            price=50000,
-            max_order_price=150000,
-            description="Silver tier",
+        self.premium = Membership.objects.create(
+            name="Premium",
+            price=20_000,
+            max_order_price=500_000,
+            description="Premium membership. Annual fee.",
             duration_days=365,
             is_available=True,
         )
@@ -58,7 +58,7 @@ class MembershipAPITestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]["name"], "Bronze")
+        self.assertEqual(response.data[0]["name"], "Basic")
 
     def test_create_membership_request(self):
         """Test that users can create a membership request"""
@@ -66,10 +66,10 @@ class MembershipAPITestCase(TestCase):
         url = reverse("memberships:user-membership-list")
 
         data = {
-            "membership": self.bronze.id,
+            "membership": self.basic.id,
             "payment_mode": "mobile_money",
             "payment_reference": "MTN123456789",
-            "amount_paid": 25000,
+            "amount_paid": 10_000,
         }
 
         response = self.client_api.post(url, data, format="json")
@@ -87,7 +87,7 @@ class MembershipAPITestCase(TestCase):
         url = reverse("memberships:user-membership-list")
 
         data = {
-            "membership": self.bronze.id,
+            "membership": self.basic.id,
             "payment_mode": "mobile_money",
             "payment_reference": "MTN123456789",
             "amount_paid": 30000,  # Wrong amount
@@ -101,10 +101,10 @@ class MembershipAPITestCase(TestCase):
         # Create a pending membership
         membership = UserMembership.objects.create(
             user=self.client_user,
-            membership=self.bronze,
+            membership=self.basic,
             payment_mode=UserMembership.PAYMENT_MOBILE_MONEY,
             payment_reference="MTN111111111",
-            amount_paid=self.bronze.price,
+            amount_paid=self.basic.price,
             status=UserMembership.STATUS_PENDING,
         )
 
@@ -128,10 +128,10 @@ class MembershipAPITestCase(TestCase):
         # Create an active membership
         membership = UserMembership.objects.create(
             user=self.client_user,
-            membership=self.bronze,
+            membership=self.basic,
             payment_mode=UserMembership.PAYMENT_MOBILE_MONEY,
             payment_reference="MTN123456789",
-            amount_paid=self.bronze.price,
+            amount_paid=self.basic.price,
             status=UserMembership.STATUS_PENDING,
         )
         membership.activate(self.admin_user)
@@ -148,10 +148,10 @@ class MembershipAPITestCase(TestCase):
         """Test canceling a membership request"""
         membership = UserMembership.objects.create(
             user=self.client_user,
-            membership=self.bronze,
+            membership=self.basic,
             payment_mode=UserMembership.PAYMENT_MOBILE_MONEY,
             payment_reference="MTN123456789",
-            amount_paid=self.bronze.price,
+            amount_paid=self.basic.price,
             status=UserMembership.STATUS_PENDING,
         )
 
@@ -174,10 +174,10 @@ class MembershipAPITestCase(TestCase):
         )
         UserMembership.objects.create(
             user=other_user,
-            membership=self.bronze,
+            membership=self.basic,
             payment_mode=UserMembership.PAYMENT_MOBILE_MONEY,
             payment_reference="MTN123456789",
-            amount_paid=self.bronze.price,
+            amount_paid=self.basic.price,
             status=UserMembership.STATUS_PENDING,
         )
 
@@ -213,9 +213,9 @@ class UserMembershipModelTestCase(TestCase):
         )
         self.membership = Membership.objects.create(
             name="Test Tier",
-            price=50000,
-            max_order_price=100000,
-            description="Test tier",
+            price=10_000,
+            max_order_price=100_000,
+            description="Test tier (annual)",
             duration_days=365,
             is_available=True,
         )

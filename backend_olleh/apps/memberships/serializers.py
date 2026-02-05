@@ -175,12 +175,12 @@ class UserMembershipCreateSerializer(serializers.ModelSerializer):
                 {"amount_paid": "Amount paid is required."}
             )
 
-        # Validate amount paid matches membership price
+        # Validate amount paid matches membership annual price
         membership = attrs.get("membership")
         if amount_paid != membership.price:
             raise serializers.ValidationError(
                 {
-                    "amount_paid": f"Amount paid must match the membership price of {membership.price:,} RWF."
+                    "amount_paid": f"Amount paid must match the annual membership price of {membership.price:,} RWF."
                 }
             )
 
@@ -271,7 +271,7 @@ class UserMembershipUpdateSerializer(serializers.ModelSerializer):
         if amount_paid and amount_paid != self.instance.membership.price:
             raise serializers.ValidationError(
                 {
-                    "amount_paid": f"Amount paid must match the membership price of {self.instance.membership.price:,} RWF."
+                    "amount_paid": f"Amount paid must match the annual membership price of {self.instance.membership.price:,} RWF."
                 }
             )
 

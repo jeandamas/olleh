@@ -55,9 +55,9 @@ All membership endpoints are prefixed with `/api/`
   {
     "id": 1,
     "name": "Basic",
-    "price": 50000,
+    "price": 10000,
     "max_order_price": 100000,
-    "description": "Basic membership with standard benefits",
+    "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
     "duration_days": 365,
     "is_available": true,
     "created_at": "2026-01-15T10:00:00Z",
@@ -66,9 +66,9 @@ All membership endpoints are prefixed with `/api/`
   {
     "id": 2,
     "name": "Premium",
-    "price": 100000,
+    "price": 20000,
     "max_order_price": 500000,
-    "description": "Premium membership with enhanced benefits",
+    "description": "Premium membership. Annual fee. Enhanced benefits and higher limits.",
     "duration_days": 365,
     "is_available": true,
     "created_at": "2026-01-15T10:00:00Z",
@@ -95,9 +95,9 @@ All membership endpoints are prefixed with `/api/`
 {
   "id": 1,
   "name": "Basic",
-  "price": 50000,
+  "price": 10000,
   "max_order_price": 100000,
-  "description": "Basic membership with standard benefits",
+  "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
   "duration_days": 365,
   "is_available": true,
   "created_at": "2026-01-15T10:00:00Z",
@@ -119,7 +119,7 @@ All membership endpoints are prefixed with `/api/`
   "membership": 1,
   "payment_mode": "mobile_money",
   "payment_reference": "MTN123456789",
-  "amount_paid": 50000
+  "amount_paid": 10000
 }
 ```
 
@@ -129,7 +129,7 @@ All membership endpoints are prefixed with `/api/`
 - `bank` - Bank Transfer (requires payment_reference)
 
 **Validation Rules:**
-- `amount_paid` must match the membership tier price exactly
+- `amount_paid` must match the membership tier's annual price exactly
 - `payment_reference` is required for `mobile_money` and `bank` payments
 - User can only have one pending membership per tier
 - User can only have one active membership at a time
@@ -140,13 +140,13 @@ All membership endpoints are prefixed with `/api/`
   "membership": 1,
   "payment_mode": "mobile_money",
   "payment_reference": "MTN123456789",
-  "amount_paid": 50000
+  "amount_paid": 10000
 }
 ```
 
 **Status after creation:** `pending` (waiting for admin approval)
 
-**Note:** All amounts are in RWF (Rwandan Francs) and must be integers (no decimal places).
+**Note:** All amounts are in RWF (Rwandan Francs), integers only. Membership fees are annual (1 year).
 
 ---
 
@@ -163,13 +163,13 @@ All membership endpoints are prefixed with `/api/`
     "id": 1,
     "membership": 1,
     "membership_name": "Basic",
-    "membership_price": 50000,
+    "membership_price": 10000,
     "status": "pending",
     "start_date": null,
     "end_date": null,
     "payment_mode": "mobile_money",
     "payment_reference": "MTN123456789",
-    "amount_paid": 50000,
+    "amount_paid": 10000,
     "is_active": false,
     "created_at": "2026-01-20T14:30:00Z",
     "updated_at": "2026-01-20T14:30:00Z"
@@ -201,9 +201,9 @@ All membership endpoints are prefixed with `/api/`
   "membership_details": {
     "id": 1,
     "name": "Basic",
-    "price": 50000,
+    "price": 10000,
     "max_order_price": 100000,
-    "description": "Basic membership with standard benefits",
+    "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
     "duration_days": 365,
     "is_available": true,
     "created_at": "2026-01-15T10:00:00Z",
@@ -214,7 +214,7 @@ All membership endpoints are prefixed with `/api/`
   "end_date": null,
   "payment_mode": "mobile_money",
   "payment_reference": "MTN123456789",
-  "amount_paid": 50000,
+  "amount_paid": 10000,
   "payment_confirmed_by": null,
   "confirmed_by_email": null,
   "payment_confirmed_at": null,
@@ -239,7 +239,7 @@ All membership endpoints are prefixed with `/api/`
 {
   "payment_mode": "bank",
   "payment_reference": "BANK987654321",
-  "amount_paid": 50000
+  "amount_paid": 10000
 }
 ```
 
@@ -248,7 +248,7 @@ All membership endpoints are prefixed with `/api/`
 {
   "payment_mode": "bank",
   "payment_reference": "BANK987654321",
-  "amount_paid": 50000
+  "amount_paid": 10000
 }
 ```
 
@@ -287,9 +287,9 @@ All membership endpoints are prefixed with `/api/`
   "membership_details": {
     "id": 1,
     "name": "Basic",
-    "price": 50000,
+    "price": 10000,
     "max_order_price": 100000,
-    "description": "Basic membership with standard benefits",
+    "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
     "duration_days": 365,
     "is_available": true,
     "created_at": "2026-01-15T10:00:00Z",
@@ -300,7 +300,7 @@ All membership endpoints are prefixed with `/api/`
   "end_date": "2027-01-21T09:00:00Z",
   "payment_mode": "mobile_money",
   "payment_reference": "MTN123456789",
-  "amount_paid": 50000,
+  "amount_paid": 10000,
   "payment_confirmed_by": 1,
   "confirmed_by_email": "admin@example.com",
   "payment_confirmed_at": "2026-01-21T09:00:00Z",
@@ -332,13 +332,13 @@ All membership endpoints are prefixed with `/api/`
     "id": 3,
     "membership": 2,
     "membership_name": "Premium",
-    "membership_price": 100000,
+    "membership_price": 20000,
     "status": "pending",
     "start_date": null,
     "end_date": null,
     "payment_mode": "bank",
     "payment_reference": "BANK123456",
-    "amount_paid": 100000,
+    "amount_paid": 20000,
     "is_active": false,
     "created_at": "2026-01-22T10:00:00Z",
     "updated_at": "2026-01-22T10:00:00Z"
@@ -361,13 +361,13 @@ All membership endpoints are prefixed with `/api/`
     "id": 1,
     "membership": 1,
     "membership_name": "Basic",
-    "membership_price": 50000,
+    "membership_price": 10000,
     "status": "expired",
     "start_date": "2025-01-20T09:00:00Z",
     "end_date": "2026-01-20T09:00:00Z",
     "payment_mode": "mobile_money",
     "payment_reference": "MTN987654321",
-    "amount_paid": 50000,
+    "amount_paid": 10000,
     "is_active": false,
     "created_at": "2025-01-19T14:30:00Z",
     "updated_at": "2026-01-20T09:01:00Z"
@@ -418,7 +418,7 @@ All membership endpoints are prefixed with `/api/`
 ### 400 Bad Request
 ```json
 {
-  "amount_paid": ["Amount paid must match the membership price of 50,000 RWF."]
+  "amount_paid": ["Amount paid must match the membership price of 10,000 RWF."]
 }
 ```
 
@@ -480,7 +480,7 @@ curl -X POST \
     "membership": 1,
     "payment_mode": "mobile_money",
     "payment_reference": "MTN123456789",
-    "amount_paid": 50000
+    "amount_paid": 10000
   }' \
   http://localhost:8000/api/user-memberships/
 ```

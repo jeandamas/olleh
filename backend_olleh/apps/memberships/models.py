@@ -13,21 +13,36 @@ from users.models import User
 # Membership Tier
 # =========================
 
+# Default duration: 1 year (per OLLEH agreement)
+DEFAULT_MEMBERSHIP_DURATION_DAYS = 365
+
 
 class Membership(BaseModel):
+    """
+    Membership tier (Basic, Premium). Fee is annual; duration is 1 year from activation.
+    """
+
     name = models.CharField(max_length=50, unique=True)
-    price = models.PositiveIntegerField(help_text="Price in RWF (Rwandan Francs)")
+    price = models.PositiveIntegerField(
+        help_text="Annual membership fee in RWF (Rwandan Francs)"
+    )
     max_order_price = models.PositiveIntegerField(
-        help_text="Maximum order price in RWF"
+        help_text="Maximum layaway/order value in RWF for this tier"
     )
     description = models.TextField(max_length=400)
     is_available = models.BooleanField(default=True)
+    duration_days = models.PositiveIntegerField(
+        default=DEFAULT_MEMBERSHIP_DURATION_DAYS,
+        help_text="Membership duration in days (typically 365 for one year)",
+    )
 
-    # Duration of the membership in days
-    duration_days = models.PositiveIntegerField(default=365)
+    class Meta:
+        verbose_name = "Membership tier"
+        verbose_name_plural = "Membership tiers"
+        ordering = ["price"]
 
     def __str__(self):
-        return f"{self.name} ({self.price:,} RWF)"
+        return f"{self.name} ({self.price:,} RWF/year)"
 
 
 # =========================
