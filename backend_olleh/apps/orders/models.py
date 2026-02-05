@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 
 from django.db import models, transaction
@@ -24,23 +25,6 @@ def compute_service_fee_rwf(item_value_rwf):
     if item_value_rwf <= SERVICE_FEE_FLAT_THRESHOLD_RWF:
         return SERVICE_FEE_FLAT_AMOUNT_RWF
     return (item_value_rwf * SERVICE_FEE_PERCENT_ABOVE_THRESHOLD) // 100
-
-
-def get_layaway_limit_rwf(savings_balance_rwf):
-    """
-    Layaway limit based on savings (OLLEH rules charter):
-    - 0 RWF savings → 30,000 RWF
-    - 1–30,000 RWF → 2× savings
-    - 30,001–60,000 RWF → 80,000 RWF
-    - 60,001+ RWF → 120,000 RWF
-    """
-    if savings_balance_rwf <= 0:
-        return 30_000
-    if savings_balance_rwf <= 30_000:
-        return 2 * savings_balance_rwf
-    if savings_balance_rwf <= 60_000:
-        return 80_000
-    return 120_000
 
 
 class Layaway(BaseModel):
@@ -79,8 +63,19 @@ class Layaway(BaseModel):
         related_name="layaways",
     )
     item_description = models.CharField(max_length=300, blank=True)
-    item_value_rwf = models.PositiveIntegerField(
-        help_text="Agreed item price in RWF"
+    item_value_rwf = models.PositiveIntegerField(help_text="Agreed item price in RWF")
+
+    # Seller info (where the item is from)
+    seller_name = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="Seller or shop name (optional)",
+    )
+    seller_phone = models.CharField(max_length=20, blank=True)
+    seller_address = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Seller/shop address (district, sector, street, etc.)",
     )
     service_fee_rwf = models.PositiveIntegerField(
         help_text="Service & protection fee in RWF"
@@ -141,7 +136,9 @@ class Layaway(BaseModel):
         if self.item_value_rwf and not self.service_fee_rwf:
             self.service_fee_rwf = compute_service_fee_rwf(self.item_value_rwf)
         if self.item_value_rwf is not None and self.service_fee_rwf is not None:
-            self.total_rwf = self.item_value_rwf + self.service_fee_rwf + self.delivery_fee_rwf
+            self.total_rwf = (
+                self.item_value_rwf + self.service_fee_rwf + self.delivery_fee_rwf
+            )
         super().save(*args, **kwargs)
 
     @property
@@ -171,8 +168,13 @@ class Layaway(BaseModel):
     @transaction.atomic
     def activate(self, duration_days=None):
         """Move to active and set end date (14–30 days)."""
-        if self.status not in (self.STATUS_COOLING_OFF, self.STATUS_PENDING_CONFIRMATION):
-            raise ValidationError("Layaway must be in cooling-off or pending to activate.")
+        if self.status not in (
+            self.STATUS_COOLING_OFF,
+            self.STATUS_PENDING_CONFIRMATION,
+        ):
+            raise ValidationError(
+                "Layaway must be in cooling-off or pending to activate."
+            )
         if duration_days is None:
             duration_days = LAYAWAY_MAX_DAYS
         if not (LAYAWAY_MIN_DAYS <= duration_days <= LAYAWAY_MAX_DAYS):
@@ -191,7 +193,11 @@ class Layaway(BaseModel):
     @transaction.atomic
     def cancel(self, apply_penalty=True):
         """Cancel layaway. If after cooling-off, apply 10k penalty."""
-        if self.status in (self.STATUS_CANCELED, self.STATUS_COMPLETED, self.STATUS_DEFAULTED):
+        if self.status in (
+            self.STATUS_CANCELED,
+            self.STATUS_COMPLETED,
+            self.STATUS_DEFAULTED,
+        ):
             raise ValidationError("This layaway cannot be canceled.")
         if apply_penalty and not self.can_cancel_without_penalty:
             self.cancellation_penalty_rwf = CANCELLATION_PENALTY_RWF
@@ -215,3 +221,40 @@ class Layaway(BaseModel):
         self.status = self.STATUS_DEFAULTED
         self.default_penalty_rwf = DEFAULT_PENALTY_RWF
         self.save()
+
+
+def layaway_item_image_upload_to(instance, filename):
+    """Store layaway item images under layaway_item_images/{layaway_id}/"""
+    ext = filename.split(".")[-1] if "." in filename else "jpg"
+    name = str(instance.pk) if instance.pk else uuid.uuid4().hex[:12]
+    return f"layaway_item_images/{instance.layaway_id}/{name}.{ext}"
+
+
+class LayawayImage(models.Model):
+    """
+    Image of the requested item for a layaway (e.g. screenshot or photo from seller).
+    """
+
+    layaway = models.ForeignKey(
+        Layaway,
+        on_delete=models.CASCADE,
+        related_name="item_images",
+    )
+    image = models.ImageField(
+        upload_to=layaway_item_image_upload_to,
+        help_text="Photo or screenshot of the requested item",
+    )
+    caption = models.CharField(max_length=150, blank=True)
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Display order (lower first)",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "created_at"]
+        verbose_name = "Layaway item image"
+        verbose_name_plural = "Layaway item images"
+
+    def __str__(self):
+        return f"Image for Layaway #{self.layaway_id}"

@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -145,16 +144,8 @@ class UserMembershipViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=["get"])
     def active(self, request):
-        """Get the user's currently active (non-expired) membership."""
-        now = timezone.now()
-        active_membership = (
-            self.get_queryset()
-            .filter(
-                status=UserMembership.STATUS_ACTIVE,
-                end_date__gt=now,
-            )
-            .first()
-        )
+        """Get the user's currently active (non-expired) membership (at most one per user)."""
+        active_membership = UserMembership.get_active_for_user(request.user)
         if not active_membership:
             return Response(
                 {"detail": "No active membership found."},

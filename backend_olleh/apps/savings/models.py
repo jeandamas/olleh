@@ -98,9 +98,7 @@ class SavingsTransaction(BaseModel):
         related_name="transactions",
     )
     kind = models.CharField(max_length=20, choices=KIND_CHOICES)
-    amount_rwf = models.IntegerField(
-        help_text="Positive = credit, negative = debit"
-    )
+    amount_rwf = models.IntegerField(help_text="Positive = credit, negative = debit")
     reference = models.CharField(max_length=100, blank=True)
     # Layaway link for payment/refund/penalty (optional)
     layaway = models.ForeignKey(
@@ -113,7 +111,11 @@ class SavingsTransaction(BaseModel):
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["account", "created_at"], name="idx_savings_acc_created")]
+        indexes = [
+            models.Index(
+                fields=["account", "created_at"], name="idx_savings_acc_created"
+            )
+        ]
 
     def __str__(self):
         return f"{self.account.user.email} {self.kind} {self.amount_rwf} RWF"

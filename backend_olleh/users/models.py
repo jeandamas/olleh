@@ -77,9 +77,24 @@ class MemberProfile(models.Model):
         choices=REPUTATION_CHOICES,
         default=REPUTATION_STARTER,
     )
+    # Contact
     phone = models.CharField(max_length=20, blank=True)
+    alternate_phone = models.CharField(max_length=20, blank=True)
     national_id = models.CharField(max_length=50, blank=True)
     full_name = models.CharField(max_length=150, blank=True)
+
+    # Delivery address (Rwanda: district, sector, cell, village, street, etc.)
+    district = models.CharField(max_length=100, blank=True)
+    sector = models.CharField(max_length=100, blank=True)
+    cell = models.CharField(max_length=100, blank=True)
+    village = models.CharField(max_length=100, blank=True)
+    street = models.CharField(max_length=150, blank=True)
+    house_number = models.CharField(max_length=50, blank=True)
+    address_notes = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Additional address details (landmark, building, etc.)",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

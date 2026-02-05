@@ -11,8 +11,12 @@ from apps.savings.views import (
 router = DefaultRouter()
 router.register(r"balance", SavingsBalanceViewSet, basename="savings-balance")
 router.register(r"deposit", SavingsDepositViewSet, basename="savings-deposit")
-router.register(r"transactions", SavingsTransactionViewSet, basename="savings-transactions")
-router.register(r"refund-requests", RefundRequestViewSet, basename="savings-refund-request")
+router.register(
+    r"transactions", SavingsTransactionViewSet, basename="savings-transactions"
+)
+router.register(
+    r"refund-requests", RefundRequestViewSet, basename="savings-refund-request"
+)
 
 urlpatterns = [
     path("", include(router.urls)),
