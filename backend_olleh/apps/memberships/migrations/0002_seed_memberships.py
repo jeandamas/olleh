@@ -1,24 +1,25 @@
-# Data migration: seed OLLEH membership tiers (Basic 10k, Premium 20k RWF/year)
+# Data migration: seed default membership tiers (canonical defaults in apps.memberships.constants)
 
 from django.db import migrations
 
 
 def seed_memberships(apps, schema_editor):
     Membership = apps.get_model("memberships", "Membership")
+    # Must match DEFAULT_MEMBERSHIP_TIERS in apps.memberships.constants for new installs
     tiers = [
         {
             "name": "Basic",
             "price": 10_000,
-            "max_order_price": 100_000,
-            "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
+            "max_order_price": 30_000,
+            "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services. Max layaway 30,000 RWF.",
             "duration_days": 365,
             "is_available": True,
         },
         {
             "name": "Premium",
             "price": 20_000,
-            "max_order_price": 500_000,
-            "description": "Premium membership. Annual fee. Enhanced benefits and higher limits.",
+            "max_order_price": 50_000,
+            "description": "Premium membership. Annual fee. Enhanced benefits. Max layaway 50,000 RWF.",
             "duration_days": 365,
             "is_available": True,
         },
@@ -42,7 +43,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("memberships", "0001_initial"),
     ]

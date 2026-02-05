@@ -4,29 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('memberships', '0002_seed_memberships'),
+        ("memberships", "0002_seed_memberships"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='membership',
-            options={'ordering': ['price'], 'verbose_name': 'Membership tier', 'verbose_name_plural': 'Membership tiers'},
+            name="membership",
+            options={
+                "ordering": ["price"],
+                "verbose_name": "Membership tier",
+                "verbose_name_plural": "Membership tiers",
+            },
         ),
         migrations.AlterField(
-            model_name='membership',
-            name='duration_days',
-            field=models.PositiveIntegerField(default=365, help_text='Membership duration in days (typically 365 for one year)'),
+            model_name="membership",
+            name="duration_days",
+            field=models.PositiveIntegerField(
+                default=365,
+                help_text="Membership duration in days (typically 365 for one year)",
+            ),
         ),
         migrations.AlterField(
-            model_name='membership',
-            name='max_order_price',
-            field=models.PositiveIntegerField(help_text='Maximum layaway/order value in RWF for this tier'),
+            model_name="membership",
+            name="max_order_price",
+            field=models.PositiveIntegerField(
+                help_text="Maximum layaway/order value in RWF for this tier"
+            ),
         ),
         migrations.AlterField(
-            model_name='membership',
-            name='price',
-            field=models.PositiveIntegerField(help_text='Annual membership fee in RWF (Rwandan Francs)'),
+            model_name="membership",
+            name="price",
+            field=models.PositiveIntegerField(
+                help_text="Annual membership fee in RWF (Rwandan Francs)"
+            ),
         ),
     ]

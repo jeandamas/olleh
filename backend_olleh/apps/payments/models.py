@@ -1,12 +1,11 @@
 from django.db import models
-from django.utils import timezone
 from users.models import User
 from apps.memberships.models import UserMembership
 
 
 class Payment(models.Model):
     """
-    Records a payment made by a user
+    Records a payment made by a user (e.g. membership fee).
     """
 
     STATUS_CHOICES = [
@@ -20,7 +19,7 @@ class Payment(models.Model):
         UserMembership,
         on_delete=models.CASCADE,
         related_name="payments",
-        null=True,  # Optional: might track other payments too
+        null=True,
         blank=True,
     )
     amount = models.PositiveIntegerField()
@@ -42,3 +41,47 @@ class Payment(models.Model):
     @property
     def is_paid(self):
         return self.status == "completed" and self.paid_at is not None
+
+
+class LayawayPayment(models.Model):
+    """
+    A payment reported by a member toward a layaway. No status field:
+    member reports payment → staff confirms (confirmed_at/confirmed_by).
+    When confirmed, amount is applied to layaway.amount_paid_rwf and
+    layaway may be marked completed if paid in full.
+    """
+
+    layaway = models.ForeignKey(
+        "orders.Layaway",
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+    amount_rwf = models.PositiveIntegerField(help_text="Amount paid in RWF")
+    reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Optional transaction reference (e.g. Mobile Money code)",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Staff confirmation (no separate status: unconfirmed = null confirmed_at)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    confirmed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="confirmed_layaway_payments",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Layaway payment"
+        verbose_name_plural = "Layaway payments"
+
+    def __str__(self):
+        return f"Layaway #{self.layaway_id} – {self.amount_rwf:,} RWF"
+
+    @property
+    def is_confirmed(self):
+        return self.confirmed_at is not None

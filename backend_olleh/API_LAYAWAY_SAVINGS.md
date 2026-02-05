@@ -37,13 +37,41 @@ This document describes the APIs added to support the OLLEH Rules Charter and Me
 | POST | `/api/layaways/` | Create a layaway request. Body: `{ "item_value_rwf": <int>, "item_description": "<optional>", "collection_type": "pickup"|"delivery", "delivery_fee_rwf": 0 }`. Service fee is computed automatically (5,000 RWF if item ≤50k, 10% above). |
 | GET | `/api/layaways/{id}/` | Get layaway details. |
 | DELETE | `/api/layaways/{id}/` | Cancel layaway. No penalty if within 48h cooling-off; otherwise 10,000 RWF cancellation penalty. |
+| POST | `/api/layaways/{id}/images/` | Upload an item image for this layaway. See **Image uploads** below. |
+| GET | `/api/layaways/{id}/payments/` | List payments reported for this layaway (installments). |
+| POST | `/api/layaways/{id}/payments/` | Report a payment (member). Body: `{ "amount_rwf": <int>, "reference": "<optional>" }`. Staff confirm separately; when confirmed, amount is applied and layaway may be marked completed if paid in full. |
+| POST | `/api/layaways/{id}/payments/{payment_id}/confirm/` | **Staff only.** Confirm a reported payment. Applies amount to layaway; if paid in full, layaway status becomes completed. |
 
-**Layaway limits (by savings balance):**
+**Payments (installments)**
 
-- 0 RWF → 30,000 RWF
-- 1–30,000 RWF → 2× savings
-- 30,001–60,000 RWF → 80,000 RWF
-- 60,001+ RWF → 120,000 RWF
+- Members report payments via `POST /api/layaways/{id}/payments/` (amount_rwf, optional reference). Payments have no status field; they are either unconfirmed (pending staff) or confirmed (confirmed_at set by staff).
+- Staff confirm via `POST /api/layaways/{id}/payments/{payment_id}/confirm/`. On confirm: layaway `amount_paid_rwf` is increased; if total paid ≥ layaway total and layaway is active, the layaway is marked **completed**.
+
+**Image uploads**
+
+Use **multipart/form-data** for `POST /api/layaways/{id}/images/`:
+
+| Field   | Type   | Required | Description |
+|--------|--------|----------|-------------|
+| `image` | file   | Yes      | Image file (JPEG, PNG, GIF, WebP). |
+| `caption` | string | No    | Optional caption. |
+| `order` | integer | No     | Display order (lower first). Default 0. |
+
+Example with `curl`:
+
+```bash
+curl -X POST "https://your-api/api/layaways/1/images/" \
+  -H "Authorization: JWT <token>" \
+  -F "image=@/path/to/photo.jpg" \
+  -F "caption=Front view"
+```
+
+Responses: `201 Created` with the new image object (`id`, `url`, `caption`, `order`, `created_at`). Image URLs are absolute.
+
+**Layaway limits (by membership tier):**
+
+- Basic: max 30,000 RWF per layaway
+- Premium: max 50,000 RWF per layaway
 
 **Service & protection fee:**
 

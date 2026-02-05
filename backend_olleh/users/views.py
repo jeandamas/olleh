@@ -60,7 +60,9 @@ class MemberMeasurementsViewSet(GenericViewSet):
             measurements = request.user.measurements
         except MemberMeasurements.DoesNotExist:
             return Response(
-                MemberMeasurementsSerializer(MemberMeasurements(user=request.user)).data,
+                MemberMeasurementsSerializer(
+                    MemberMeasurements(user=request.user)
+                ).data,
                 status=status.HTTP_200_OK,
             )
         return Response(MemberMeasurementsSerializer(measurements).data)

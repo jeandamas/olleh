@@ -14,7 +14,15 @@ class MemberProfileSerializer(serializers.ModelSerializer):
             "reputation",
             "full_name",
             "phone",
+            "alternate_phone",
             "national_id",
+            "district",
+            "sector",
+            "cell",
+            "village",
+            "street",
+            "house_number",
+            "address_notes",
         ]
         read_only_fields = ["olleh_code", "reputation"]
 

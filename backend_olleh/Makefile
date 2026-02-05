@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 
 # Variables
-PYTHON := python
+PYTHON := uv run
 MANAGE := $(PYTHON) manage.py
 
 help: ## Show this help message

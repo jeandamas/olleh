@@ -133,6 +133,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Media files (user uploads, e.g. layaway item images)
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 
 # CUSTOM USER FOR AUTH
 AUTH_USER_MODEL = "users.User"
@@ -155,8 +159,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("JWT",),
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=180),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=180),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=365),
 }
 
 

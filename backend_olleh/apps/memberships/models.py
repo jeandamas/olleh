@@ -19,7 +19,9 @@ DEFAULT_MEMBERSHIP_DURATION_DAYS = 365
 
 class Membership(BaseModel):
     """
-    Membership tier (Basic, Premium). Fee is annual; duration is 1 year from activation.
+    Membership tier. Fee is annual; duration is from duration_days.
+    Max layaway limit for a member = this tier's max_order_price (no code dependency on tier names).
+    Tiers can be added or updated in Admin; eligibility uses whatever is in DB.
     """
 
     name = models.CharField(max_length=50, unique=True)
@@ -27,7 +29,7 @@ class Membership(BaseModel):
         help_text="Annual membership fee in RWF (Rwandan Francs)"
     )
     max_order_price = models.PositiveIntegerField(
-        help_text="Maximum layaway/order value in RWF for this tier"
+        help_text="Maximum layaway (item value) in RWF for this tier; used for eligibility."
     )
     description = models.TextField(max_length=400)
     is_available = models.BooleanField(default=True)
@@ -221,6 +223,31 @@ class UserMembership(BaseModel):
     # Business Logic
     # =========================
 
+    @classmethod
+    def get_active_for_user(cls, user):
+        """
+        Return the single active (non-expired) membership for this user, or None.
+        At most one active membership per user (enforced by unique_active_membership_per_user).
+        Raises RuntimeError if duplicate actives exist (data integrity).
+        """
+        now = timezone.now()
+        qs = (
+            cls.objects.filter(
+                user=user,
+                status=cls.STATUS_ACTIVE,
+                end_date__gt=now,
+            )
+            .select_related("membership")
+            .order_by("-end_date")
+        )
+        actives = list(qs[:2])
+        if len(actives) > 1:
+            raise RuntimeError(
+                "Data integrity: user has more than one active membership. "
+                "Constraint unique_active_membership_per_user should prevent this."
+            )
+        return actives[0] if actives else None
+
     @property
     def is_active(self):
         return (
@@ -251,7 +278,7 @@ class UserMembership(BaseModel):
         if self.status not in [self.STATUS_PAID, self.STATUS_PENDING]:
             raise ValidationError("Membership must be paid before activation.")
 
-        # Expire other active memberships
+        # Expire any other active memberships (only one active per user)
         UserMembership.objects.filter(
             user=self.user,
             status=self.STATUS_ACTIVE,
@@ -259,6 +286,19 @@ class UserMembership(BaseModel):
             status=self.STATUS_EXPIRED,
             end_date=timezone.now(),
         )
+        # Double-check: no other active should remain for this user
+        other_active = (
+            UserMembership.objects.filter(
+                user=self.user,
+                status=self.STATUS_ACTIVE,
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        )
+        if other_active:
+            raise ValidationError(
+                "Could not activate: another active membership still exists for this user."
+            )
 
         now = timezone.now()
 

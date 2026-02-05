@@ -10,9 +10,52 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(MemberProfile)
 class MemberProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "olleh_code", "reputation", "phone", "full_name")
-    search_fields = ("olleh_code", "user__email", "full_name")
+    list_display = (
+        "user",
+        "olleh_code",
+        "reputation",
+        "phone",
+        "full_name",
+        "district",
+        "sector",
+    )
+    search_fields = (
+        "olleh_code",
+        "user__email",
+        "full_name",
+        "phone",
+        "district",
+        "sector",
+    )
     raw_id_fields = ("user",)
+    fieldsets = (
+        (None, {"fields": ("user", "olleh_code", "reputation")}),
+        (
+            "Contact",
+            {
+                "fields": (
+                    "full_name",
+                    "phone",
+                    "alternate_phone",
+                    "national_id",
+                )
+            },
+        ),
+        (
+            "Delivery address",
+            {
+                "fields": (
+                    "district",
+                    "sector",
+                    "cell",
+                    "village",
+                    "street",
+                    "house_number",
+                    "address_notes",
+                )
+            },
+        ),
+    )
 
 
 @admin.register(MemberMeasurements)

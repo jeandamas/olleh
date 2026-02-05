@@ -1,41 +1,22 @@
 """
-Seed OLLEH membership tiers (Basic 10,000 RWF, Premium 20,000 RWF per year).
-Idempotent: safe to run multiple times. Matches OLLEH Membership & Layaway Agreement.
+Seed membership tiers from apps.memberships.constants. Idempotent.
+Tiers can be updated later in Django Admin; limits and pricing are stored in DB.
 """
 
 from django.core.management.base import BaseCommand
 
+from apps.memberships.constants import DEFAULT_MEMBERSHIP_TIERS
 from apps.memberships.models import Membership
 
 
-MEMBERSHIPS_DATA = [
-    {
-        "name": "Basic",
-        "price": 10_000,
-        "max_order_price": 100_000,
-        "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
-        "duration_days": 365,
-        "is_available": True,
-    },
-    {
-        "name": "Premium",
-        "price": 20_000,
-        "max_order_price": 500_000,
-        "description": "Premium membership. Annual fee. Enhanced benefits and higher limits.",
-        "duration_days": 365,
-        "is_available": True,
-    },
-]
-
-
 class Command(BaseCommand):
-    help = "Seed OLLEH membership tiers (Basic 10k, Premium 20k RWF/year). Idempotent."
+    help = "Seed default membership tiers from constants. Idempotent. Edit tiers in Admin after."
 
     def handle(self, *args, **options):
         created_count = 0
         skipped_count = 0
 
-        for data in MEMBERSHIPS_DATA:
+        for data in DEFAULT_MEMBERSHIP_TIERS:
             membership, created = Membership.objects.get_or_create(
                 name=data["name"],
                 defaults={
@@ -60,5 +41,7 @@ class Command(BaseCommand):
                 skipped_count += 1
 
         self.stdout.write(
-            self.style.SUCCESS(f"\nDone. {created_count} created, {skipped_count} unchanged.")
+            self.style.SUCCESS(
+                f"\nDone. {created_count} created, {skipped_count} unchanged."
+            )
         )
