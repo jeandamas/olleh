@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "apps.common",
     "apps.memberships",
     "apps.orders",
+    "apps.savings",
     "apps.payments",
 ]
 

@@ -1,79 +1,64 @@
+"""
+Seed OLLEH membership tiers (Basic 10,000 RWF, Premium 20,000 RWF per year).
+Idempotent: safe to run multiple times. Matches OLLEH Membership & Layaway Agreement.
+"""
+
 from django.core.management.base import BaseCommand
+
 from apps.memberships.models import Membership
 
 
+MEMBERSHIPS_DATA = [
+    {
+        "name": "Basic",
+        "price": 10_000,
+        "max_order_price": 100_000,
+        "description": "Basic membership. Annual fee. Access to OLLEH layaway and savings services.",
+        "duration_days": 365,
+        "is_available": True,
+    },
+    {
+        "name": "Premium",
+        "price": 20_000,
+        "max_order_price": 500_000,
+        "description": "Premium membership. Annual fee. Enhanced benefits and higher limits.",
+        "duration_days": 365,
+        "is_available": True,
+    },
+]
+
+
 class Command(BaseCommand):
-    help = "Create sample membership tiers for testing"
+    help = "Seed OLLEH membership tiers (Basic 10k, Premium 20k RWF/year). Idempotent."
 
-    def handle(self, *args, **kwargs):
-        # Sample membership tiers data (all prices in RWF - integers only)
-        memberships_data = [
-            {
-                "name": "Bronze",
-                "price": 25000,
-                "max_order_price": 50000,
-                "description": "Perfect for occasional shoppers. Get started with basic membership benefits and enjoy exclusive access to our platform.",
-                "duration_days": 365,
-                "is_available": True,
-            },
-            {
-                "name": "Silver",
-                "price": 50000,
-                "max_order_price": 150000,
-                "description": "Great for regular customers. Enhanced benefits with higher order limits and priority support.",
-                "duration_days": 365,
-                "is_available": True,
-            },
-            {
-                "name": "Gold",
-                "price": 100000,
-                "max_order_price": 500000,
-                "description": "Premium membership for serious buyers. Maximum order limits, premium support, and exclusive deals.",
-                "duration_days": 365,
-                "is_available": True,
-            },
-            {
-                "name": "Platinum",
-                "price": 250000,
-                "max_order_price": 2000000,
-                "description": "Ultimate membership for power users. Unlimited benefits, VIP support, and the highest order limits available.",
-                "duration_days": 365,
-                "is_available": True,
-            },
-        ]
-
+    def handle(self, *args, **options):
         created_count = 0
         skipped_count = 0
 
-        for membership_data in memberships_data:
+        for data in MEMBERSHIPS_DATA:
             membership, created = Membership.objects.get_or_create(
-                name=membership_data["name"],
+                name=data["name"],
                 defaults={
-                    "price": membership_data["price"],
-                    "max_order_price": membership_data["max_order_price"],
-                    "description": membership_data["description"],
-                    "duration_days": membership_data["duration_days"],
-                    "is_available": membership_data["is_available"],
+                    "price": data["price"],
+                    "max_order_price": data["max_order_price"],
+                    "description": data["description"],
+                    "duration_days": data["duration_days"],
+                    "is_available": data["is_available"],
                 },
             )
-
             if created:
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"✓ Created membership: {membership.name} ({membership.price:,} RWF)"
+                        f"Created: {membership.name} ({membership.price:,} RWF/year)"
                     )
                 )
                 created_count += 1
             else:
                 self.stdout.write(
-                    self.style.WARNING(f"⚠ Skipped (already exists): {membership.name}")
+                    self.style.WARNING(f"Already exists: {membership.name}")
                 )
                 skipped_count += 1
 
-        self.stdout.write("\n" + "=" * 60)
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Summary: {created_count} created, {skipped_count} skipped"
-            )
+            self.style.SUCCESS(f"\nDone. {created_count} created, {skipped_count} unchanged.")
         )
-        self.stdout.write("=" * 60)

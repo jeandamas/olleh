@@ -23,12 +23,32 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from apps.common.views import PoliciesViewSet
+from users.views import MemberProfileViewSet, MemberMeasurementsViewSet
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     re_path(r"^auth/", include("djoser.urls")),
     re_path(r"^auth/", include("djoser.urls.jwt")),
     # YOUR PATTERNS
     path("api/", include("apps.memberships.urls")),
+    path("api/savings/", include("apps.savings.urls")),
+    path("api/", include("apps.orders.urls")),
+    path(
+        "api/policies/",
+        PoliciesViewSet.as_view(actions={"get": "list"}),
+        name="policies-list",
+    ),
+    path(
+        "api/me/profile/",
+        MemberProfileViewSet.as_view(actions={"get": "list", "patch": "partial_update"}),
+        name="me-profile",
+    ),
+    path(
+        "api/me/measurements/",
+        MemberMeasurementsViewSet.as_view(actions={"get": "list", "post": "create"}),
+        name="me-measurements",
+    ),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:
     path(
