@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "~/lib/auth-context";
+import { membershipApi } from "~/lib/membership";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -9,148 +12,153 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Switch } from "~/components/ui/switch";
 import { Badge } from "~/components/ui/badge";
-import { CircleCheck, Zap } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Separator } from "~/components/ui/separator";
-
-interface PricingFeature {
-  text: string;
-}
-
-interface PricingPlan {
-  id: string;
-  name: string;
-  monthlyPrice: string;
-  yearlyPrice: string;
-  features: PricingFeature[];
-  popular?: boolean;
-  button: { text: string; url: string };
-}
+import { Skeleton } from "~/components/ui/skeleton";
+import { useNavigate } from "react-router";
 
 interface PricingProps {
   heading?: string;
   description?: string;
-  plans?: PricingPlan[];
   className?: string;
 }
 
 const Pricing = ({
-  heading = "Simple, Transparent Pricing",
-  description = "Choose the plan that fits your needs. No hidden fees.",
-  plans = [
-    {
-      id: "starter",
-      name: "Starter",
-      monthlyPrice: "$0",
-      yearlyPrice: "$0",
-      features: [
-        { text: "All core components" },
-        { text: "Community support" },
-        { text: "Free updates" },
-        { text: "Free support" },
-      ],
-      button: { text: "Get Started", url: "#" },
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      monthlyPrice: "$49",
-      yearlyPrice: "$490",
-      popular: true,
-      features: [
-        { text: "Everything in Starter" },
-        { text: "Premium components" },
-        { text: "Priority support" },
-        { text: "Early access" },
-        { text: "Pro support" },
-        { text: "Free updates" },
-        { text: "Community support" },
-      ],
-      button: { text: "Start Free Trial", url: "#" },
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      monthlyPrice: "$99",
-      yearlyPrice: "$990",
-      features: [
-        { text: "Everything in Pro" },
-        { text: "Custom components" },
-        { text: "Dedicated support" },
-        { text: "SLA guarantee" },
-        { text: "Early access" },
-        { text: "Pro support" },
-        { text: "Free updates" },
-        { text: "Community support" },
-        ],
-      button: { text: "Contact Sales", url: "#" },
-    },
-  ],
+  heading = "Choose Your Membership",
+  description = "Select an annual membership plan to get started with OLLEH. All memberships are valid for one year.",
   className,
 }: PricingProps) => {
-  const [isYearly, setIsYearly] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Fetch available memberships
+  const { data: memberships, isLoading } = useQuery({
+    queryKey: ['memberships', 'available'],
+    queryFn: membershipApi.getAvailableMemberships,
+    retry: false,
+  });
+
+  const handleGetStarted = (membershipId?: number) => {
+    if (isAuthenticated) {
+      // If authenticated, navigate to home where they'll see membership status
+      navigate('/');
+    } else {
+      // If not authenticated, navigate to signup
+      navigate('/signup');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section className={cn("w-full py-12 md:py-24", className)}>
+        <div className="container mx-auto px-6">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <Skeleton className="h-12 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3 mx-auto">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-96 w-full max-w-md mx-auto" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!memberships || memberships.length === 0) {
+    return (
+      <section className={cn("w-full py-12 md:py-24", className)}>
+        <div className="container mx-auto px-6">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <h2 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
+              {heading}
+            </h2>
+            <p className="mt-2 text-lg text-muted-foreground">
+              No membership plans are currently available. Please check back later.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Filter only available memberships
+  const availableMemberships = memberships.filter((m) => m.is_available);
+  
+  // Mark the middle one as popular if we have 3 or more
+  const popularIndex = availableMemberships.length >= 3 
+    ? Math.floor(availableMemberships.length / 2) 
+    : -1;
 
   return (
     <section className={cn("w-full py-12 md:py-24", className)}>
-      <div className="container mx-auto px-6 ">
+      <div className="container mx-auto px-6">
         <div className="mx-auto mb-12 max-w-3xl text-center">
           <h2 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
             {heading}
           </h2>
           <p className="mt-2 text-lg text-muted-foreground">{description}</p>
-          <div className="mt-8 flex items-center justify-center gap-4 text-sm">
-            <span className={cn(!isYearly ? "font-medium" : "text-muted-foreground")}>
-              Monthly
-            </span>
-            <Switch checked={isYearly} onCheckedChange={setIsYearly} />
-            <span className={cn(isYearly ? "font-medium" : "text-muted-foreground")}>
-              Yearly
-            </span>
-          </div>
         </div>
-        <div className="grid gap-6 lg:grid-cols-3  mx-auto">
-          {plans.map((plan) => (
-            <div key={plan.id} className="relative">
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge>Most Popular</Badge>
-                </div>
-              )}
-              <Card className={cn("flex h-full flex-col max-w-md mx-auto gap-4", plan.popular && "border-primary border-2")}>
-                <CardHeader>
-                  <CardTitle className="mt-4 text-3xl">{plan.name}</CardTitle>
-                  <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-4xl font-semibold">
-                      {isYearly ? plan.yearlyPrice : plan.monthlyPrice}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {isYearly ? "/year" : "/month"}
-                    </span>
+        <div className="grid gap-6 lg:grid-cols-3 mx-auto">
+          {availableMemberships.map((membership, index) => {
+            const isPopular = index === popularIndex;
+            return (
+              <div key={membership.id} className="relative">
+                {isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge>Most Popular</Badge>
                   </div>
-                </CardHeader>
-                <div className="px-4 my-2">
-                  <Separator />
-                </div>
-                <CardContent className="flex-1 ">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature.text} className="flex items-center gap-2">
+                )}
+                <Card className={cn(
+                  "flex h-full flex-col max-w-md mx-auto gap-4",
+                  isPopular && "border-primary border-2"
+                )}>
+                  <CardHeader>
+                    <CardTitle className="mt-4 text-3xl">{membership.name}</CardTitle>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-4xl font-semibold">
+                        {membership.price.toLocaleString()}
+                      </span>
+                      <span className="text-muted-foreground">RWF/year</span>
+                    </div>
+                  </CardHeader>
+                  <div className="px-4 my-2">
+                    <Separator />
+                  </div>
+                  <CardContent className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-4">{membership.description}</p>
+                    <ul className="space-y-3">
+                      <li className="flex items-center gap-2">
                         <CircleCheck className="size-4 shrink-0 text-primary" />
-                        <span>{feature.text}</span>
+                        <span>Max order: {membership.max_order_price.toLocaleString()} RWF</span>
                       </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button asChild className="w-full" variant={plan.popular ? "default" : "outline"} size="lg">
-                    <a href={plan.button.url}>{plan.button.text}</a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          ))}
+                      <li className="flex items-center gap-2">
+                        <CircleCheck className="size-4 shrink-0 text-primary" />
+                        <span>Duration: {membership.duration_days} days</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CircleCheck className="size-4 shrink-0 text-primary" />
+                        <span>Annual membership</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      className="w-full"
+                      variant={isPopular ? "default" : "outline"}
+                      size="lg"
+                      onClick={() => handleGetStarted(membership.id)}
+                    >
+                      {isAuthenticated ? "View Details" : "Get Started"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

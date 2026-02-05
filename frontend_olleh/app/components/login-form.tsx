@@ -36,7 +36,7 @@ export function LoginForm({
     try {
       setError(null)
       // Get redirect path from location state (set by ProtectedRoute)
-      const redirectTo = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
+      const redirectTo = (location.state as { from?: Location })?.from?.pathname || '/'
       await login(data.email, data.password, redirectTo)
       toast.success("Login successful! Welcome back.")
     } catch (err) {

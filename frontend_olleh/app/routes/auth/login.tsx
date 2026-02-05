@@ -6,7 +6,7 @@ import { useAuth } from "~/lib/auth-context"
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth()
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to home if already authenticated
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -19,7 +19,7 @@ export default function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/" replace />
   }
 
   return (
